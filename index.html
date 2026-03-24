@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merch Book</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }
+        .button { background: white; padding: 15px; margin: 10px; border-radius: 12px; 
+                  box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: block; 
+                  text-decoration: none; color: #333; font-weight: bold; border: 1px solid #ddd; }
+        .brand-logo { width: 50px; height: 50px; vertical-align: middle; margin-right: 10px; }
+        h2 { color: #0088cc; }
+    </style>
+</head>
+<body>
+    <h2>აირჩიე ქსელი</h2>
+    <div onclick="showBrands('სუფთა სახლი')" class="button">სუფთა სახლი</div>
+    <div onclick="showBrands('კარფური')" class="button">კარფური</div>
+    <div onclick="showBrands('ნიკორა')" class="button">ნიკორა</div>
+
+    <div id="brands" style="display:none;">
+        <h2 id="networkName"></h2>
+        <div onclick="openLinks('Nivea')" class="button">Nivea</div>
+        <div onclick="openLinks('Eureka')" class="button">Eureka</div>
+        <div onclick="openLinks('Nefis')" class="button">Nefis</div>
+        <button onclick="location.reload()">უკან დაბრუნება</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function showBrands(name) {
+            document.body.children[1].style.display = 'none'; // ქსელების დამალვა
+            document.getElementById('brands').style.display = 'block';
+            document.getElementById('networkName').innerText = name;
+        }
+
+        function openLinks(brand) {
+            // აქ მოგვიანებით ჩავსვამთ რეალურ ლინკებს
+            alert("გაიხსნა " + brand + "-ის მონაცემები");
+        }
+    </script>
+</body>
+</html>
