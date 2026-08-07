@@ -16,8 +16,8 @@
         .tt-special { background: #fff4e5; border: 1px solid #ffcc80; color: #e67e22; font-weight: bold; }
         .btn-container { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 20px; }
         .link-btn { background: #34a853; color: white; padding: 15px; border-radius: 10px; text-decoration: none; 
-                    font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(52,168,83,0.3); }
-        .pres-btn { background: #ea4335; box-shadow: 0 4px 12px rgba(234,67,53,0.3); cursor: pointer; }
+                    font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(52,168,83,0.3); cursor: pointer; }
+        .pres-btn { background: #ea4335; box-shadow: 0 4px 12px rgba(234,67,53,0.3); }
         .back-btn { margin-top: 25px; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; }
     </style>
 </head>
@@ -46,8 +46,8 @@
 <div id="step3" style="display:none; width: 100%;">
     <div class="header" id="selectedBrand"></div>
     <div class="btn-container">
-        <a href="#" id="shelfLink" class="link-btn" target="_blank">📊 დალაგების წილი</a>
-        <a href="#" id="presLink" class="link-btn pres-btn" target="_blank">🖼️ პრეზენტაცია</a>
+        <button id="shelfLink" class="link-btn">📊 დალაგების წილი</button>
+        <button id="presLink" class="link-btn pres-btn">🖼️ პრეზენტაცია</button>
     </div>
     <button class="back-btn" onclick="goBackToBrands()">🔙 ბრენდებზე დაბრუნება</button>
 </div>
@@ -56,19 +56,16 @@
     let tg = window.Telegram.WebApp;
     tg.expand();
 
-    // ზოგადი ბრენდების სია სხვა ქსელებისთვის
     const baseBrands = [
         "NEFIS COSMETICS", "SODAL", "NIVEA", "IPEK", "EUREKA", "ARIX", "PACLAN", 
         "DEEP FRESH", "PEROS", "MC BRIDE", "WHITE DAY", "NEON", "SOFFIONE", 
         "HAYAT - BINGO", "HAYAT-MOLPED", "HAYAT-MOLFIX"
     ];
 
-    // კარფურის სპეციალური ბრენდების სია
     const carrefourBrands = [
         "ARIX", "DEEP FRESH", "YPEK", "NIVEA", "PEROS", "SODAL", "HAYAT", "NEFIS COSMETICS", "EUREKA"
     ];
 
-    // პრეზენტაციების ლინკების მონაცემთა ბაზა
     const presentations = {
         "კარფური": {
             "NEFIS COSMETICS": "https://docs.google.com/presentation/d/1xFMaItzI1AxviOoAHG37NUUfNnoO_rLF/edit?usp=drive_link&ouid=116577112344004965761&rtpof=true&sd=true",
@@ -90,7 +87,6 @@
 
         let networkBrands = [];
 
-        // ქსელების მიხედვით ბრენდების ფილტრაცია
         if (network === 'კარფური') {
             networkBrands = [...carrefourBrands];
         } else if (network === 'TT') {
@@ -118,19 +114,29 @@
         
         const presBtn = document.getElementById('presLink');
 
-        // შემოწმება: არსებობს თუ არა პრეზენტაცია ამ ქსელისა და ბრენდისთვის
         if (presentations[currentNetwork] && presentations[currentNetwork][brand]) {
-            presBtn.href = presentations[currentNetwork][brand];
-            presBtn.onclick = null; // ჩვეულებრივი ლინკის გახსნა
+            const url = presentations[currentNetwork][brand];
+            presBtn.onclick = function(e) {
+                e.preventDefault();
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                    window.Telegram.WebApp.openLink(url);
+                } else {
+                    window.open(url, '_blank');
+                }
+            };
             presBtn.style.opacity = "1";
         } else {
-            presBtn.href = "javascript:void(0);";
-            presBtn.onclick = () => alert("⚠️ ამ ბრენდის პრეზენტაცია ჯერ არ არის დამატებული.");
+            presBtn.onclick = function(e) {
+                e.preventDefault();
+                alert("⚠️ ამ ბრენდის პრეზენტაცია ჯერ არ არის დამატებული.");
+            };
             presBtn.style.opacity = "0.7";
         }
 
-        // დალაგების წილის ლინკი (მომავლისთვის)
-        document.getElementById('shelfLink').href = "#";
+        document.getElementById('shelfLink').onclick = function(e) {
+            e.preventDefault();
+            alert("⚠️ დალაგების წილი ჯერ არ არის დამატებული.");
+        };
     }
 
     function goBack() {
