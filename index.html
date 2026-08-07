@@ -16,13 +16,18 @@
         .tt-special { background: #fff4e5; border: 1px solid #ffcc80; color: #e67e22; font-weight: bold; }
         .btn-container { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 20px; }
         .link-btn { background: #34a853; color: white; padding: 15px; border-radius: 10px; text-decoration: none; 
-                    font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(52,168,83,0.3); cursor: pointer; }
+                    font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(52,168,83,0.3); border: none; font-size: 16px; cursor: pointer; }
         .pres-btn { background: #ea4335; box-shadow: 0 4px 12px rgba(234,67,53,0.3); }
-        .back-btn { margin-top: 25px; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; }
+        .back-btn { margin-top: 20px; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
+        
+        /* პრეზენტაციის ფანჯრის სტილები */
+        .pres-container { width: 100%; height: 70vh; margin-top: 10px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
+<!-- ნაბიჯი 1: ქსელის არჩევა -->
 <div id="step1" style="width: 100%;">
     <div class="header">🏢 აირჩიე ქსელი</div>
     <div class="grid">
@@ -37,19 +42,30 @@
     </div>
 </div>
 
+<!-- ნაბიჯი 2: ბრენდის არჩევა -->
 <div id="step2" style="display:none; width: 100%;">
     <div class="header" id="selectedNetwork"></div>
     <div class="grid" id="brandGrid"></div>
     <button class="back-btn" onclick="goBack()">🔙 უკან დაბრუნება</button>
 </div>
 
+<!-- ნაბიჯი 3: ღილაკები -->
 <div id="step3" style="display:none; width: 100%;">
     <div class="header" id="selectedBrand"></div>
     <div class="btn-container">
         <button id="shelfLink" class="link-btn">📊 დალაგების წილი</button>
-        <button id="presLink" class="link-btn pres-btn">🖼️ პრეზენტაცია</button>
+        <button id="presLink" class="link-btn pres-btn" onclick="openEmbedPresentation()">🖼️ პრეზენტაცია</button>
     </div>
     <button class="back-btn" onclick="goBackToBrands()">🔙 ბრენდებზე დაბრუნება</button>
+</div>
+
+<!-- ნაბიჯი 4: ჩაშენებული პრეზენტაცია (Iframe) -->
+<div id="step4" style="display:none; width: 100%;">
+    <div class="header" id="presTitle">🖼️ პრეზენტაცია</div>
+    <div class="pres-container">
+        <iframe id="presFrame" src="" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    </div>
+    <button class="back-btn" onclick="goBackToStep3()">🔙 უკან დაბრუნება</button>
 </div>
 
 <script>
@@ -66,15 +82,17 @@
         "ARIX", "DEEP FRESH", "YPEK", "NIVEA", "PEROS", "SODAL", "HAYAT", "NEFIS COSMETICS", "EUREKA"
     ];
 
+    // Google Slides Embed ლინკები (preview რეჟიმში)
     const presentations = {
         "კარფური": {
-            "NEFIS COSMETICS": "https://docs.google.com/presentation/d/1xFMaItzI1AxviOoAHG37NUUfNnoO_rLF/edit?usp=drive_link&ouid=116577112344004965761&rtpof=true&sd=true",
-            "SODAL": "https://docs.google.com/presentation/d/1Xx0v8JVZ4wkBEife2jOmCb1ZQiyzbrcA/edit?usp=drive_link&ouid=116577112344004965761&rtpof=true&sd=true",
-            "EUREKA": "https://docs.google.com/presentation/d/1x4ziGx0dcKLJUStPKZKxjFOeE5juAkzv/edit?usp=drive_link&ouid=116577112344004965761&rtpof=true&sd=true"
+            "NEFIS COSMETICS": "https://docs.google.com/presentation/d/1xFMaItzI1AxviOoAHG37NUUfNnoO_rLF/embed?start=false&loop=false&delayms=3000",
+            "SODAL": "https://docs.google.com/presentation/d/1Xx0v8JVZ4wkBEife2jOmCb1ZQiyzbrcA/embed?start=false&loop=false&delayms=3000",
+            "EUREKA": "https://docs.google.com/presentation/d/1x4ziGx0dcKLJUStPKZKxjFOeE5juAkzv/embed?start=false&loop=false&delayms=3000"
         }
     };
 
     let currentNetwork = '';
+    let currentBrand = '';
 
     function nextStep(network) {
         currentNetwork = network;
@@ -108,6 +126,7 @@
     }
 
     function showLinks(brand) {
+        currentBrand = brand;
         document.getElementById('step2').style.display = 'none';
         document.getElementById('step3').style.display = 'block';
         document.getElementById('selectedBrand').innerText = "✨ " + brand;
@@ -115,21 +134,8 @@
         const presBtn = document.getElementById('presLink');
 
         if (presentations[currentNetwork] && presentations[currentNetwork][brand]) {
-            const url = presentations[currentNetwork][brand];
-            presBtn.onclick = function(e) {
-                e.preventDefault();
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
-                    window.Telegram.WebApp.openLink(url);
-                } else {
-                    window.open(url, '_blank');
-                }
-            };
             presBtn.style.opacity = "1";
         } else {
-            presBtn.onclick = function(e) {
-                e.preventDefault();
-                alert("⚠️ ამ ბრენდის პრეზენტაცია ჯერ არ არის დამატებული.");
-            };
             presBtn.style.opacity = "0.7";
         }
 
@@ -137,6 +143,19 @@
             e.preventDefault();
             alert("⚠️ დალაგების წილი ჯერ არ არის დამატებული.");
         };
+    }
+
+    function openEmbedPresentation() {
+        if (presentations[currentNetwork] && presentations[currentNetwork][currentBrand]) {
+            const embedUrl = presentations[currentNetwork][currentBrand];
+            document.getElementById('presFrame').src = embedUrl;
+            document.getElementById('presTitle').innerText = "🖼️ " + currentBrand + " - პრეზენტაცია";
+            
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('step4').style.display = 'block';
+        } else {
+            alert("⚠️ ამ ბრენდის პრეზენტაცია ჯერ არ არის დამატებული.");
+        }
     }
 
     function goBack() {
@@ -147,6 +166,12 @@
     function goBackToBrands() {
         document.getElementById('step3').style.display = 'none';
         document.getElementById('step2').style.display = 'block';
+    }
+
+    function goBackToStep3() {
+        document.getElementById('presFrame').src = ""; // გავთიშოთ პრეზენტაცია უკან დაბრუნებისას
+        document.getElementById('step4').style.display = 'none';
+        document.getElementById('step3').style.display = 'block';
     }
 </script>
 </body>
