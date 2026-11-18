@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
@@ -13,16 +13,15 @@
                 display: flex; align-items: center; justify-content: center; min-height: 50px; }
         .card:active { background: #eef7ff; transform: scale(0.96); }
         .brand-card { font-size: 12px; text-transform: uppercase; padding: 10px 5px; }
-        .tt-special { background: #fff4e5; border: 1px solid #ffcc80; color: #e67e22; font-weight: bold; }
         .btn-container { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 20px; }
         .link-btn { background: #34a853; color: white; padding: 15px; border-radius: 10px; text-decoration: none; 
                     font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(52,168,83,0.3); border: none; font-size: 16px; cursor: pointer; }
         .pres-btn { background: #ea4335; box-shadow: 0 4px 12px rgba(234,67,53,0.3); }
         .back-btn { margin-top: 20px; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
         
-        /* პრეზენტაციის ფანჯრის სტილები */
-        .pres-container { width: 100%; height: 70vh; margin-top: 10px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        iframe { width: 100%; height: 100%; border: none; }
+        /* სურათის კონტეინერი */
+        .img-container { width: 100%; overflow: auto; text-align: center; background: #fff; padding: 10px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .pres-img { width: 100%; height: auto; border-radius: 8px; display: block; }
     </style>
 </head>
 <body>
@@ -35,10 +34,11 @@
         <div class="card" onclick="nextStep('სუფთა სახლი')">სუფთა სახლი</div>
         <div class="card" onclick="nextStep('გუდვილი')">გუდვილი</div>
         <div class="card" onclick="nextStep('ფრესკო')">ფრესკო</div>
-        <div class="card" onclick="nextStep('ნიკორა-ლიბრე')">ნიკორა-ლიბრე</div>
+        <div class="card" onclick="nextStep('ნიკორა')">ნიკორა</div>
+        <div class="card" onclick="nextStep('ლიბრე')">ლიბრე</div>
         <div class="card" onclick="nextStep('მაგნიტი')">მაგნიტი</div>
-        <div class="card" onclick="nextStep('მემო')">მემო</div>
-        <div class="card" style="background: #e3f2fd; border-color: #2196f3;" onclick="nextStep('TT')">💼 TT (Traditional)</div>
+        <div class="card" onclick="nextStep('პსპ')">პსპ</div>
+        <div class="card" onclick="nextStep('ავერსი')">ავერსი</div>
     </div>
 </div>
 
@@ -54,16 +54,16 @@
     <div class="header" id="selectedBrand"></div>
     <div class="btn-container">
         <button id="shelfLink" class="link-btn">📊 დალაგების წილი</button>
-        <button id="presLink" class="link-btn pres-btn" onclick="openEmbedPresentation()">🖼️ პრეზენტაცია</button>
+        <button id="presLink" class="link-btn pres-btn" onclick="openImagePresentation()">🖼️ პრეზენტაცია</button>
     </div>
     <button class="back-btn" onclick="goBackToBrands()">🔙 ბრენდებზე დაბრუნება</button>
 </div>
 
-<!-- ნაბიჯი 4: ჩაშენებული პრეზენტაცია (Iframe) -->
+<!-- ნაბიჯი 4: სურათის ჩვენება -->
 <div id="step4" style="display:none; width: 100%;">
     <div class="header" id="presTitle">🖼️ პრეზენტაცია</div>
-    <div class="pres-container">
-        <iframe id="presFrame" src="" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    <div class="img-container">
+        <img id="presImg" class="pres-img" src="" alt="პრეზენტაცია">
     </div>
     <button class="back-btn" onclick="goBackToStep3()">🔙 უკან დაბრუნება</button>
 </div>
@@ -72,22 +72,17 @@
     let tg = window.Telegram.WebApp;
     tg.expand();
 
+    // განახლებული 5 ბრენდის სია ყველა ქსელისთვის
     const baseBrands = [
-        "NEFIS COSMETICS", "SODAL", "NIVEA", "IPEK", "EUREKA", "ARIX", "PACLAN", 
-        "DEEP FRESH", "PEROS", "MC BRIDE", "WHITE DAY", "NEON", "SOFFIONE", 
-        "HAYAT - BINGO", "HAYAT-MOLPED", "HAYAT-MOLFIX"
+        "NEFIS COSMETICS", "ARIX", "PACLAN", "SODAL", "EUREKA"
     ];
 
-    const carrefourBrands = [
-        "ARIX", "DEEP FRESH", "YPEK", "NIVEA", "PEROS", "SODAL", "HAYAT", "NEFIS COSMETICS", "EUREKA"
-    ];
-
-    // Google Slides Embed ლინკები (preview რეჟიმში)
-    const presentations = {
+    // GitHub-ში ატვირთული სურათების ფაილების სახელები
+    const imagePresentations = {
         "კარფური": {
-            "NEFIS COSMETICS": "https://docs.google.com/presentation/d/1xFMaItzI1AxviOoAHG37NUUfNnoO_rLF/embed?start=false&loop=false&delayms=3000",
-            "SODAL": "https://docs.google.com/presentation/d/1Xx0v8JVZ4wkBEife2jOmCb1ZQiyzbrcA/embed?start=false&loop=false&delayms=3000",
-            "EUREKA": "https://docs.google.com/presentation/d/1x4ziGx0dcKLJUStPKZKxjFOeE5juAkzv/embed?start=false&loop=false&delayms=3000"
+            "NEFIS COSMETICS": "nefis.png",
+            "SODAL": "sodal.png",
+            "EUREKA": "eureka.png"
         }
     };
 
@@ -103,22 +98,9 @@
         const brandGrid = document.getElementById('brandGrid');
         brandGrid.innerHTML = '';
 
-        let networkBrands = [];
-
-        if (network === 'კარფური') {
-            networkBrands = [...carrefourBrands];
-        } else if (network === 'TT') {
-            networkBrands = [...baseBrands, "სამოტივაციო ბრენდი", "ტიტიზი"];
-        } else {
-            networkBrands = [...baseBrands];
-        }
-
-        networkBrands.forEach(brand => {
+        baseBrands.forEach(brand => {
             const div = document.createElement('div');
             div.className = 'card brand-card';
-            if (brand === "სამოტივაციო ბრენდი" || brand === "ტიტიზი") {
-                div.classList.add('tt-special');
-            }
             div.innerText = brand;
             div.onclick = () => showLinks(brand);
             brandGrid.appendChild(div);
@@ -133,7 +115,7 @@
         
         const presBtn = document.getElementById('presLink');
 
-        if (presentations[currentNetwork] && presentations[currentNetwork][brand]) {
+        if (imagePresentations[currentNetwork] && imagePresentations[currentNetwork][brand]) {
             presBtn.style.opacity = "1";
         } else {
             presBtn.style.opacity = "0.7";
@@ -145,11 +127,11 @@
         };
     }
 
-    function openEmbedPresentation() {
-        if (presentations[currentNetwork] && presentations[currentNetwork][currentBrand]) {
-            const embedUrl = presentations[currentNetwork][currentBrand];
-            document.getElementById('presFrame').src = embedUrl;
-            document.getElementById('presTitle').innerText = "🖼️ " + currentBrand + " - პრეზენტაცია";
+    function openImagePresentation() {
+        if (imagePresentations[currentNetwork] && imagePresentations[currentNetwork][currentBrand]) {
+            const imgName = imagePresentations[currentNetwork][currentBrand];
+            document.getElementById('presImg').src = imgName;
+            document.getElementById('presTitle').innerText = "🖼️ " + currentBrand;
             
             document.getElementById('step3').style.display = 'none';
             document.getElementById('step4').style.display = 'block';
@@ -169,7 +151,6 @@
     }
 
     function goBackToStep3() {
-        document.getElementById('presFrame').src = ""; // გავთიშოთ პრეზენტაცია უკან დაბრუნებისას
         document.getElementById('step4').style.display = 'none';
         document.getElementById('step3').style.display = 'block';
     }
